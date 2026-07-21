@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Strategy Performance</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+  :root{
+    --surface-1:#1a1a19; --plane:#0d0d0d;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --blue:#3987e5; --pos:#0ca30c; --neg:#d03b3b; --warn:#fab219;
+    --dd-fill:rgba(214,59,59,.28); --dd-line:#e66767;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--plane);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--blue)}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px 18px 60px}
+  header{display:flex;align-items:baseline;justify-content:space-between;
+    flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  h1{font-size:18px;font-weight:600;letter-spacing:.02em;margin:0}
+  .updated{font-size:12.5px;color:var(--muted)}
+  .updated b{color:var(--ink-2);font-weight:600}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 16px}
+  .tab{border:1px solid var(--border);background:var(--surface-1);color:var(--ink-2);
+    padding:7px 14px;border-radius:999px;font-size:13px;cursor:pointer;
+    transition:.12s;white-space:nowrap}
+  .tab:hover{border-color:#4a4a47;color:var(--ink)}
+  .tab.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+  .tab .st{color:var(--warn);margin-left:6px;font-size:11px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  @media(max-width:640px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--surface-1);border:1px solid var(--border);
+    border-radius:12px;padding:16px 18px}
+  .card .lbl{font-size:12px;color:var(--muted);margin-bottom:8px;
+    text-transform:uppercase;letter-spacing:.06em}
+  .card .val{font-size:30px;font-weight:600;line-height:1;
+    font-variant-numeric:tabular-nums}
+  .card .sub{font-size:11.5px;color:var(--muted);margin-top:7px}
+  .pos{color:var(--pos)} .neg{color:var(--neg)}
+  .desc{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
+    padding:14px 18px;margin-bottom:16px;font-size:13.5px;line-height:1.7;color:var(--ink-2)}
+  .desc b{color:var(--ink);font-weight:600}
+  .stale-badge{display:inline-block;background:rgba(250,178,25,.14);color:var(--warn);
+    border:1px solid rgba(250,178,25,.35);border-radius:6px;padding:2px 8px;
+    font-size:11.5px;margin-left:8px}
+  #chart{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
+    padding:6px 4px 2px;min-height:520px}
+  .warnbox{background:rgba(214,59,59,.10);border:1px solid rgba(214,59,59,.35);
+    border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#f3b0b0}
+  .warnbox summary{cursor:pointer;color:var(--neg);font-weight:600}
+  .warnbox ul{margin:8px 0 0;padding-left:18px;line-height:1.6}
+  footer{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+  .empty{padding:60px 20px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Strategy Performance <span style="color:var(--muted);font-weight:400">— anonymized</span></h1>
+    <div class="updated">Last update: <b id="updated">—</b></div>
+  </header>
+
+  <div id="warnslot"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="cards" id="cards"></div>
+  <div class="desc" id="desc"></div>
+  <div id="chart"></div>
+
+  <footer>
+    Relative returns only (inception = 0%). No absolute amounts or account information.<br>
+    Drawdown is the decline from the peak of cumulative return. All KPIs are net-of-fees, relative figures.
+  </footer>
+</div>
+
+<script>
+const DASH = {"generated_at":"2026-07-21 15:41 UTC","stale_days_threshold":5,"strategies":{"__ALL__":{"name":"Portfolio (ALL)","description":"Combined performance across all strategies. Their low mutual correlation aims to deliver shallower drawdowns and better risk-adjusted returns than any single sleeve.","dates":["2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"cum":[-0.143,0.0495,0.6279,0.9293,0.9293,0.9293,0.9293,0.6629,1.0455,0.8649,0.9051,0.9075,0.8496,1.0196,1.0196],"dd":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.264,0.0,-0.1787,-0.1389,-0.1365,-0.1938,-0.0256,-0.0256],"total_ret":1.02,"max_dd":-0.26,"last7":0.35,"last_date":"2026-07-22","stale_days":-1,"stale":false},"dislocation":{"name":"Dislocation Reversion","description":"Buys sharply sold-off, over-reacted quality names for a short-horizon reversion. Signals are sparse and strongly clustered (flat while there are no fills); low correlation to trend cushions drawdowns.","dates":["2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"cum":[0.0,0.0,0.0,0.0,0.0,0.0],"dd":[0.0,0.0,0.0,0.0,0.0,0.0],"total_ret":0.0,"max_dd":0.0,"last7":0.0,"last_date":"2026-07-22","stale_days":-1,"stale":false},"intraday_meanrev":{"name":"Mean Reversion — intraday","description":"Counter-trend strategy capturing short-horizon overshoots via mean reversion. A regime-health gate automatically pauses it when the market is unfavorable.","dates":["2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-19","2026-07-20","2026-07-21"],"cum":[-0.143,0.0495,0.6279,0.9293,0.9636,1.0284,1.6055],"dd":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"total_ret":1.61,"max_dd":0.0,"last7":0.67,"last_date":"2026-07-21","stale_days":0,"stale":false},"lev_momentum":{"name":"Leveraged Momentum — equities","description":"Holds top-momentum assets with leverage and rotates into defensive assets during drawdowns. Aims to amplify returns in up markets.","dates":["2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"cum":[-0.3526,0.3384,0.2448,0.2448,0.2448,-0.0158,0.1329,0.1329],"dd":[0.0,0.0,-0.0933,-0.0933,-0.0933,-0.3531,-0.2049,-0.2049],"total_ret":0.13,"max_dd":-0.35,"last7":0.49,"last_date":"2026-07-22","stale_days":-1,"stale":false},"trend_ls":{"name":"Trend Following — L/S multi-asset","description":"Long/short momentum that follows medium-term trends across multiple assets. Profits when directional moves persist; low correlation to the other sleeves.","dates":["2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21"],"cum":[0.0,0.0,0.0,-0.1753,-0.1088,-0.5509,-0.4322,-0.4565,-0.49,-0.5354],"dd":[0.0,0.0,0.0,-0.1753,-0.1088,-0.5509,-0.4322,-0.4565,-0.49,-0.5354],"total_ret":-0.54,"max_dd":-0.55,"last7":-0.54,"last_date":"2026-07-21","stale_days":0,"stale":false}},"order":["__ALL__","dislocation","intraday_meanrev","lev_momentum","trend_ls"],"warnings":[]};
+
+const COL = {
+  surface:'#1a1a19', ink:'#ffffff', ink2:'#c3c2b7', muted:'#898781',
+  grid:'#2c2c2a', axis:'#383835', blue:'#3987e5', pos:'#0ca30c', neg:'#d03b3b',
+  ddLine:'#e66767', ddFill:'rgba(214,59,59,0.28)'
+};
+
+function fmtPct(x){ return (x>0?'+':'') + x.toFixed(2) + '%'; }
+function cls(x){ return x>=0 ? 'pos' : 'neg'; }
+
+function renderWarnings(){
+  const slot = document.getElementById('warnslot');
+  const ws = (DASH && DASH.warnings) || [];
+  if(!ws.length){ slot.innerHTML=''; return; }
+  slot.innerHTML =
+    '<details class="warnbox"><summary>⚠ '+ws.length+' data warning(s) (click to expand)</summary><ul>'
+    + ws.map(w=>'<li>'+w.replace(/</g,'&lt;')+'</li>').join('') + '</ul></details>';
+}
+
+function renderTabs(active){
+  const t = document.getElementById('tabs');
+  t.innerHTML = DASH.order.map(k=>{
+    const s = DASH.strategies[k];
+    const st = s.stale ? '<span class="st">STALE</span>' : '';
+    return '<button class="tab'+(k===active?' active':'')+'" data-k="'+k+'">'
+      + s.name + st + '</button>';
+  }).join('');
+  t.querySelectorAll('.tab').forEach(b=>{
+    b.onclick=()=>select(b.dataset.k);
+  });
+}
+
+function renderCards(s){
+  const c = document.getElementById('cards');
+  c.innerHTML = [
+    ['Cumulative return', fmtPct(s.total_ret), cls(s.total_ret), 'since inception'],
+    ['Max drawdown', s.max_dd.toFixed(2)+'%', 'neg', 'largest peak-to-trough decline'],
+    ['Last 7 days', fmtPct(s.last7), cls(s.last7), 'compounded over the past week']
+  ].map(([lbl,val,k,sub])=>
+    '<div class="card"><div class="lbl">'+lbl+'</div>'
+    + '<div class="val '+k+'">'+val+'</div>'
+    + '<div class="sub">'+sub+'</div></div>').join('');
+}
+
+function renderDesc(s){
+  const stale = s.stale
+    ? '<span class="stale-badge">⚠ no update for '+s.stale_days+' day(s) (threshold '+DASH.stale_days_threshold+'d)</span>'
+    : '';
+  document.getElementById('desc').innerHTML =
+    '<b>'+s.name+'</b> — last data '+s.last_date+' '+stale+'<br>'+s.description;
+}
+
+function renderChart(s){
+  const cumTrace = {
+    x:s.dates, y:s.cum, type:'scatter', mode:'lines', name:'Cumulative',
+    line:{color:COL.blue, width:2}, xaxis:'x', yaxis:'y',
+    hovertemplate:'%{x}<br>Cumulative %{y:.2f}%<extra></extra>'
+  };
+  const ddTrace = {
+    x:s.dates, y:s.dd, type:'scatter', mode:'lines', name:'Drawdown',
+    line:{color:COL.ddLine, width:1.4}, fill:'tozeroy', fillcolor:COL.ddFill,
+    xaxis:'x2', yaxis:'y2',
+    hovertemplate:'%{x}<br>DD %{y:.2f}%<extra></extra>'
+  };
+  const layout = {
+    paper_bgcolor:COL.surface, plot_bgcolor:COL.surface,
+    font:{color:COL.ink2, family:'system-ui,-apple-system,Segoe UI,sans-serif', size:12},
+    margin:{l:56, r:18, t:26, b:36},
+    showlegend:false, hovermode:'x unified',
+    hoverlabel:{bgcolor:'#111', bordercolor:COL.axis, font:{color:COL.ink}},
+    xaxis:{domain:[0,1], anchor:'y', matches:'x2', showticklabels:false,
+      gridcolor:COL.grid, zeroline:false, linecolor:COL.axis},
+    xaxis2:{domain:[0,1], anchor:'y2', gridcolor:COL.grid, zeroline:false,
+      linecolor:COL.axis, tickfont:{color:COL.muted}},
+    yaxis:{domain:[0.30,1], title:{text:'Cumulative return (%)',font:{size:11,color:COL.muted}},
+      gridcolor:COL.grid, zeroline:true, zerolinecolor:COL.axis, ticksuffix:'%',
+      tickfont:{color:COL.muted}},
+    yaxis2:{domain:[0,0.20], title:{text:'Drawdown (%)',font:{size:11,color:COL.muted}},
+      gridcolor:COL.grid, zeroline:true, zerolinecolor:COL.axis, ticksuffix:'%',
+      tickfont:{color:COL.muted}, rangemode:'nonpositive'}
+  };
+  Plotly.react('chart', [cumTrace, ddTrace], layout,
+    {responsive:true, displayModeBar:false});
+}
+
+function select(k){
+  const s = DASH.strategies[k];
+  if(!s) return;
+  renderTabs(k);
+  renderCards(s);
+  renderDesc(s);
+  renderChart(s);
+}
+
+function boot(){
+  document.getElementById('updated').textContent = DASH ? DASH.generated_at : '—';
+  renderWarnings();
+  if(!DASH || !DASH.order || !DASH.order.length){
+    document.getElementById('chart').innerHTML =
+      '<div class="empty">No strategy data available to display.</div>';
+    return;
+  }
+  select(DASH.order[0]);
+}
+boot();
+</script>
+</body>
+</html>
