@@ -60,8 +60,21 @@
   .card .val{font-size:26px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
   .card .sub{font-size:11px;color:var(--muted);margin-top:6px}
   .pos{color:var(--pos)} .neg{color:var(--neg)} .dim{color:var(--muted)}
-  .desc{padding:14px 18px;margin-bottom:14px;font-size:13.5px;line-height:1.7;color:var(--ink-2)}
+  .desc{padding:14px 18px;margin-bottom:14px;font-size:13.5px;line-height:1.7;
+    color:var(--ink-2);display:flex;gap:18px;align-items:center}
   .desc b{color:var(--ink);font-weight:600}
+  .desc .body{flex:1 1 auto;min-width:0}
+  .mascot{flex:0 0 auto;width:104px;text-align:center;user-select:none}
+  .mascot img{height:104px;width:auto;display:block;margin:0 auto;
+    filter:drop-shadow(0 3px 8px rgba(0,0,0,.5))}
+  .mascot .state{margin-top:7px;font-size:10px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase}
+  .mascot .why{margin-top:2px;font-size:10px;color:var(--muted);line-height:1.4}
+  @media(max-width:620px){
+    .desc{flex-direction:column;align-items:flex-start;gap:12px}
+    .mascot{width:100%;text-align:left}
+    .mascot img{margin:0}
+  }
   .stale-badge{display:inline-block;background:rgba(250,178,25,.14);color:var(--warn);
     border:1px solid rgba(250,178,25,.35);border-radius:6px;padding:2px 8px;
     font-size:11.5px;margin-left:8px}
@@ -159,7 +172,7 @@
 </div>
 
 <script>
-const DASH = {"generated_at":"2026-07-21 16:12 UTC","stale_days_threshold":5,"min_obs":20,"strategies":{"__ALL__":{"name":"Portfolio (ALL)","description":"Combined performance across all strategies, weighted by their capital allocation. Their low mutual correlation aims to deliver shallower drawdowns and better risk-adjusted returns than any single sleeve.","asset_class":"Mixed","allocation_pct":100.0,"dates":["2026-06-23","2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[9.84e-06,-5.791e-05,7.797e-05,0.00023433,0.00012203,-0.00199631,0.0,0.0,-0.00390477,-0.00252008,0.00427769,-0.001626,0.00028788,-4.487e-05,-0.00160244,0.00129234,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"dislocation":{"name":"Dislocation Reversion","description":"Buys sharply sold-off, over-reacted quality names for a short-horizon reversion. Signals are sparse and strongly clustered (flat while there are no fills); low correlation to trend cushions drawdowns.","asset_class":"Crypto","allocation_pct":12.16,"dates":["2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"intraday_meanrev":{"name":"Mean Reversion — intraday","description":"Counter-trend strategy capturing short-horizon overshoots via mean reversion. A regime-health gate automatically pauses it when the market is unfavorable.","asset_class":"Crypto","allocation_pct":4.05,"dates":["2026-06-23","2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-19","2026-07-20","2026-07-21"],"ret":[0.000243,-0.00142965,0.00192729,0.00578173,0.00299446,0.00033976,0.00064265,0.00571185],"last_date":"2026-07-21","stale_days":0,"stale":false},"lev_momentum":{"name":"Leveraged Momentum — equities","description":"Holds top-momentum assets with leverage and rotates into defensive assets during drawdowns. Aims to amplify returns in up markets.","asset_class":"Equities","allocation_pct":59.47,"dates":["2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[-0.00655536,-0.00352631,0.00693521,-0.00093345,0.0,0.0,-0.00259954,0.00196255,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"trend_ls":{"name":"Trend Following — L/S multi-asset","description":"Long/short momentum that follows medium-term trends across multiple assets. Profits when directional moves persist; low correlation to the other sleeves.","asset_class":"Crypto","allocation_pct":24.32,"dates":["2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21"],"ret":[-0.00821167,0.0,0.0,0.0,-0.00175306,0.00066663,-0.00442646,0.00119366,-0.00024371,-0.00033696,-0.00045596],"last_date":"2026-07-21","stale_days":0,"stale":false}},"order":["__ALL__","dislocation","intraday_meanrev","lev_momentum","trend_ls"],"correlation":{"ok":false,"n":3,"reason":"insufficient overlapping history"},"warnings":[]};
+const DASH = {"generated_at":"2026-07-21 16:51 UTC","stale_days_threshold":5,"min_obs":20,"mascot":{"good":1.0,"bad":-1.0,"dd_caution":-10.0},"strategies":{"__ALL__":{"name":"Portfolio (ALL)","description":"Combined performance across all strategies, weighted by their capital allocation. Their low mutual correlation aims to deliver shallower drawdowns and better risk-adjusted returns than any single sleeve.","asset_class":"Mixed","allocation_pct":100.0,"dates":["2026-06-23","2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[9.84e-06,-5.791e-05,7.797e-05,0.00023433,0.00012203,-0.00199631,0.0,0.0,-0.00390477,-0.00252008,0.00427769,-0.001626,0.00028788,-4.487e-05,-0.00160244,0.00129234,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"dislocation":{"name":"Dislocation Reversion","description":"Buys sharply sold-off, over-reacted quality names for a short-horizon reversion. Signals are sparse and strongly clustered (flat while there are no fills); low correlation to trend cushions drawdowns.","asset_class":"Crypto","allocation_pct":12.16,"dates":["2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"intraday_meanrev":{"name":"Mean Reversion — intraday","description":"Counter-trend strategy capturing short-horizon overshoots via mean reversion. A regime-health gate automatically pauses it when the market is unfavorable.","asset_class":"Crypto","allocation_pct":4.05,"dates":["2026-06-23","2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-19","2026-07-20","2026-07-21"],"ret":[0.000243,-0.00142965,0.00192729,0.00578173,0.00299446,0.00033976,0.00064265,0.00571185],"last_date":"2026-07-21","stale_days":0,"stale":false},"lev_momentum":{"name":"Leveraged Momentum — equities","description":"Holds top-momentum assets with leverage and rotates into defensive assets during drawdowns. Aims to amplify returns in up markets.","asset_class":"Equities","allocation_pct":59.47,"dates":["2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[-0.00655536,-0.00352631,0.00693521,-0.00093345,0.0,0.0,-0.00259954,0.00196255,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"trend_ls":{"name":"Trend Following — L/S multi-asset","description":"Long/short momentum that follows medium-term trends across multiple assets. Profits when directional moves persist; low correlation to the other sleeves.","asset_class":"Crypto","allocation_pct":24.32,"dates":["2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21"],"ret":[-0.00821167,0.0,0.0,0.0,-0.00175306,0.00066663,-0.00442646,0.00119366,-0.00024371,-0.00033696,-0.00045596],"last_date":"2026-07-21","stale_days":0,"stale":false}},"order":["__ALL__","dislocation","intraday_meanrev","lev_momentum","trend_ls"],"correlation":{"ok":false,"n":3,"reason":"insufficient overlapping history"},"warnings":[]};
 
 const COL = {
   surface:'#1a1a19', ink:'#ffffff', ink2:'#c3c2b7', muted:'#898781',
@@ -310,16 +323,46 @@ function renderCards(s, daily){
     +'<div class="sub">'+sb+'</div></div>').join('');
 }
 
-function renderDesc(s){
+/* Mascot reflects the CURRENTLY SELECTED strategy.
+   Priority: caution (needs attention) > bad > good > idle. */
+const MASCOT_UI = {
+  idle:   {label:'Idle',    color:'var(--muted)'},
+  good:   {label:'Strong',  color:'var(--pos)'},
+  bad:    {label:'Weak',    color:'var(--neg)'},
+  caution:{label:'Caution', color:'var(--warn)'}
+};
+function mascotState(s, daily){
+  const th = DASH.mascot || {good:1,bad:-1,dd_caution:-10};
+  if(s.stale) return ['caution','data has gone stale'];
+  const dd = ddSeries(daily.rets);
+  const curdd = dd.length ? dd[dd.length-1] : 0;
+  if(curdd <= th.dd_caution)
+    return ['caution','in a '+curdd.toFixed(1)+'% drawdown'];
+  const cum = cumSeries(daily.rets);
+  const total = cum.length ? cum[cum.length-1] : 0;
+  if(total <= th.bad)   return ['bad','down '+total.toFixed(2)+'%'];
+  if(total >= th.good)  return ['good','up +'+total.toFixed(2)+'%'];
+  return ['idle','flat, within ±'+th.good+'%'];
+}
+
+function renderDesc(s, daily){
   const stale = s.stale
     ? '<span class="stale-badge">⚠ no update for '+s.stale_days+' day(s) (threshold '+DASH.stale_days_threshold+'d)</span>'
     : '';
   const alloc = (s.allocation_pct!==null && s.allocation_pct!==undefined && s.name.indexOf('Portfolio')<0)
     ? ' · '+s.allocation_pct.toFixed(1)+'% of capital' : '';
   const ac = (s.asset_class && s.asset_class!=='—') ? ' · '+esc(s.asset_class) : '';
+  const [state, why] = mascotState(s, daily);
+  const ui = MASCOT_UI[state];
   document.getElementById('desc').innerHTML =
-    '<b>'+esc(s.name)+'</b>'+ac+alloc+' — last data '+s.last_date+' '+stale
-    +'<br>'+esc(s.description);
+    '<div class="mascot">'
+      +'<img src="assets/mascot-'+state+'.png" alt="'+ui.label+'" loading="lazy">'
+      +'<div class="state" style="color:'+ui.color+'">'+ui.label+'</div>'
+      +'<div class="why">'+esc(why)+'</div>'
+    +'</div>'
+    +'<div class="body"><b>'+esc(s.name)+'</b>'+ac+alloc
+      +' — last data '+s.last_date+' '+stale
+      +'<br>'+esc(s.description)+'</div>';
 }
 
 function renderChart(view){
@@ -470,7 +513,7 @@ function draw(){
   const clipped=clipRange(daily.dates, daily.rets, RANGE);
   const view=resample(clipped.dates, clipped.rets, GRAN);
   renderCards(s, daily);      // KPIs always on full daily history
-  renderDesc(s);
+  renderDesc(s, daily);
   renderChart(view);
   renderBars(view);
 }
