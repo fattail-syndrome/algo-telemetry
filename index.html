@@ -42,6 +42,14 @@
   .seg button:last-child{border-right:0}
   .seg button:hover{background:rgba(255,255,255,.05);color:var(--ink)}
   .seg button.on{background:var(--blue);color:#fff;font-weight:600}
+  .capbox input{background:var(--surface-1);border:1px solid var(--border);
+    border-radius:8px;color:var(--ink);padding:5px 10px;font-size:12px;width:130px;
+    font-variant-numeric:tabular-nums;font-family:inherit}
+  .capbox input:focus{outline:0;border-color:var(--blue)}
+  .capbox button{background:transparent;border:1px solid var(--border);border-radius:8px;
+    color:var(--muted);padding:5px 9px;font-size:11px;cursor:pointer;margin-left:4px}
+  .capbox button:hover{color:var(--ink);border-color:#4a4a47}
+  .amt{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
   .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
   @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:520px){.cards{grid-template-columns:1fr}}
@@ -105,6 +113,10 @@
         <button data-r="0" class="on">ALL</button>
       </span>
     </span>
+    <span class="capbox">Initial capital
+      <input id="cap-input" type="number" min="0" step="any" placeholder="optional">
+      <button id="cap-clear" type="button">clear</button>
+    </span>
   </div>
 
   <div class="cards" id="cards"></div>
@@ -147,7 +159,7 @@
 </div>
 
 <script>
-const DASH = {"generated_at":"2026-07-21 16:03 UTC","stale_days_threshold":5,"min_obs":20,"strategies":{"__ALL__":{"name":"Portfolio (ALL)","description":"Combined performance across all strategies, weighted by their capital allocation. Their low mutual correlation aims to deliver shallower drawdowns and better risk-adjusted returns than any single sleeve.","asset_class":"Mixed","allocation_pct":100.0,"dates":["2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[-0.00142965,0.00192729,0.00578173,0.00299446,0.0,0.0,0.0,-0.00300983,0.00510941,-0.00170284,0.00030347,-4.563e-05,-0.00159888,0.00131166,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"dislocation":{"name":"Dislocation Reversion","description":"Buys sharply sold-off, over-reacted quality names for a short-horizon reversion. Signals are sparse and strongly clustered (flat while there are no fills); low correlation to trend cushions drawdowns.","asset_class":"Crypto","allocation_pct":12.2,"dates":["2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[0.0,0.0,0.0,0.0,0.0,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"intraday_meanrev":{"name":"Mean Reversion — intraday","description":"Counter-trend strategy capturing short-horizon overshoots via mean reversion. A regime-health gate automatically pauses it when the market is unfavorable.","asset_class":"Crypto","allocation_pct":4.1,"dates":["2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-19","2026-07-20","2026-07-21"],"ret":[-0.00142965,0.00192729,0.00578173,0.00299446,0.00033976,0.00064265,0.00571185],"last_date":"2026-07-21","stale_days":0,"stale":false},"lev_momentum":{"name":"Leveraged Momentum — equities","description":"Holds top-momentum assets with leverage and rotates into defensive assets during drawdowns. Aims to amplify returns in up markets.","asset_class":"Equities","allocation_pct":59.3,"dates":["2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[-0.00352631,0.00693521,-0.00093345,0.0,0.0,-0.00259954,0.00200621,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"trend_ls":{"name":"Trend Following — L/S multi-asset","description":"Long/short momentum that follows medium-term trends across multiple assets. Profits when directional moves persist; low correlation to the other sleeves.","asset_class":"Crypto","allocation_pct":24.4,"dates":["2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21"],"ret":[0.0,0.0,0.0,-0.00175306,0.00066663,-0.00442646,0.00119366,-0.00024371,-0.00033696,-0.00045596],"last_date":"2026-07-21","stale_days":0,"stale":false}},"order":["__ALL__","dislocation","intraday_meanrev","lev_momentum","trend_ls"],"correlation":{"ok":false,"n":3,"reason":"insufficient overlapping history"},"warnings":[]};
+const DASH = {"generated_at":"2026-07-21 16:12 UTC","stale_days_threshold":5,"min_obs":20,"strategies":{"__ALL__":{"name":"Portfolio (ALL)","description":"Combined performance across all strategies, weighted by their capital allocation. Their low mutual correlation aims to deliver shallower drawdowns and better risk-adjusted returns than any single sleeve.","asset_class":"Mixed","allocation_pct":100.0,"dates":["2026-06-23","2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[9.84e-06,-5.791e-05,7.797e-05,0.00023433,0.00012203,-0.00199631,0.0,0.0,-0.00390477,-0.00252008,0.00427769,-0.001626,0.00028788,-4.487e-05,-0.00160244,0.00129234,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"dislocation":{"name":"Dislocation Reversion","description":"Buys sharply sold-off, over-reacted quality names for a short-horizon reversion. Signals are sparse and strongly clustered (flat while there are no fills); low correlation to trend cushions drawdowns.","asset_class":"Crypto","allocation_pct":12.16,"dates":["2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"intraday_meanrev":{"name":"Mean Reversion — intraday","description":"Counter-trend strategy capturing short-horizon overshoots via mean reversion. A regime-health gate automatically pauses it when the market is unfavorable.","asset_class":"Crypto","allocation_pct":4.05,"dates":["2026-06-23","2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-19","2026-07-20","2026-07-21"],"ret":[0.000243,-0.00142965,0.00192729,0.00578173,0.00299446,0.00033976,0.00064265,0.00571185],"last_date":"2026-07-21","stale_days":0,"stale":false},"lev_momentum":{"name":"Leveraged Momentum — equities","description":"Holds top-momentum assets with leverage and rotates into defensive assets during drawdowns. Aims to amplify returns in up markets.","asset_class":"Equities","allocation_pct":59.47,"dates":["2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[-0.00655536,-0.00352631,0.00693521,-0.00093345,0.0,0.0,-0.00259954,0.00196255,0.0],"last_date":"2026-07-22","stale_days":-1,"stale":false},"trend_ls":{"name":"Trend Following — L/S multi-asset","description":"Long/short momentum that follows medium-term trends across multiple assets. Profits when directional moves persist; low correlation to the other sleeves.","asset_class":"Crypto","allocation_pct":24.32,"dates":["2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21"],"ret":[-0.00821167,0.0,0.0,0.0,-0.00175306,0.00066663,-0.00442646,0.00119366,-0.00024371,-0.00033696,-0.00045596],"last_date":"2026-07-21","stale_days":0,"stale":false}},"order":["__ALL__","dislocation","intraday_meanrev","lev_momentum","trend_ls"],"correlation":{"ok":false,"n":3,"reason":"insufficient overlapping history"},"warnings":[]};
 
 const COL = {
   surface:'#1a1a19', ink:'#ffffff', ink2:'#c3c2b7', muted:'#898781',
@@ -157,12 +169,21 @@ const COL = {
 };
 const PLOT_CFG = {responsive:true, displayModeBar:false};
 
-let GRAN = 'D', RANGE = 0, CUR = null;
+let GRAN = 'D', RANGE = 0, CUR = null, CAPITAL = 0;
 
 /* ---------- helpers ---------- */
 function fmtPct(x){ return (x>0?'+':'') + x.toFixed(2) + '%'; }
 function cls(x){ return x>=0 ? 'pos' : 'neg'; }
 function esc(s){ return String(s).replace(/</g,'&lt;'); }
+
+/* Initial capital is entered by the viewer and lives only in this browser
+   (localStorage). It is never part of the published data. */
+function fmtNum(x, dp){
+  return x.toLocaleString(undefined,{minimumFractionDigits:dp===undefined?0:dp,
+                                     maximumFractionDigits:dp===undefined?0:dp});
+}
+function fmtSigned(x){ return (x>0?'+':x<0?'-':'') + fmtNum(Math.abs(x)); }
+function amountOf(pct){ return CAPITAL>0 ? CAPITAL*pct/100 : null; }
 
 function bucketKey(d, g){
   if(g==='D') return d;
@@ -268,16 +289,25 @@ function renderCards(s, daily){
   const last7 = windowReturn(daily.dates, daily.rets, 7);
   const volTxt = st.vol===null ? '—' : st.vol.toFixed(1)+'%';
   const winTxt = st.win===null ? '—' : st.win.toFixed(0)+'%';
+
+  // Capital deployed to THIS sleeve (the portfolio tab uses the full amount).
+  const share = (s.allocation_pct===null||s.allocation_pct===undefined)
+    ? 100 : s.allocation_pct;
+  const alloc = amountOf(share);
+  const sub = (base, pct) => {
+    if(alloc===null) return base;
+    return '<span class="amt">'+fmtSigned(alloc*pct/100)+'</span> of '+fmtNum(alloc);
+  };
   document.getElementById('cards').innerHTML = [
-    ['Cumulative return', fmtPct(st.total), cls(st.total), 'since inception'],
-    ['Max drawdown', st.maxdd.toFixed(2)+'%', 'neg', 'largest peak-to-trough'],
-    ['Last 7 days', fmtPct(last7), cls(last7), 'compounded'],
+    ['Cumulative return', fmtPct(st.total), cls(st.total), sub('since inception', st.total)],
+    ['Max drawdown', st.maxdd.toFixed(2)+'%', 'neg', sub('largest peak-to-trough', st.maxdd)],
+    ['Last 7 days', fmtPct(last7), cls(last7), sub('compounded', last7)],
     ['Volatility (ann.)', volTxt, 'dim', 'estimate, n='+st.n+'d'],
     ['Win rate', winTxt, 'dim', 'share of active days up']
-  ].map(([lbl,val,k,sub])=>
+  ].map(([lbl,val,k,sb])=>
     '<div class="card"><div class="lbl">'+lbl+'</div>'
     +'<div class="val '+k+'">'+val+'</div>'
-    +'<div class="sub">'+sub+'</div></div>').join('');
+    +'<div class="sub">'+sb+'</div></div>').join('');
 }
 
 function renderDesc(s){
@@ -348,7 +378,10 @@ function renderDonut(){
       line:{color:COL.surface,width:2}},
     textinfo:'percent', textposition:'inside',
     insidetextfont:{color:'#fff',size:12},
-    hovertemplate:'%{label}<br>%{value:.1f}% of capital<extra></extra>',
+    customdata:keys.map(k=>CAPITAL>0
+      ? fmtNum(amountOf(DASH.strategies[k].allocation_pct)) : ''),
+    hovertemplate:'%{label}<br>%{value:.2f}% of capital'
+      +(CAPITAL>0?'<br>%{customdata}':'')+'<extra></extra>',
     sort:false
   }], {
     paper_bgcolor:COL.surface, plot_bgcolor:COL.surface,
@@ -387,13 +420,23 @@ function renderCorr(){
 }
 
 function renderStats(){
+  const withCap = CAPITAL>0;
   const rows=DASH.order.map(k=>{
     const s=DASH.strategies[k], st=statsOf(s.ret);
     const f=(v,d,suf)=>v===null||v===undefined?'<span class="dim">—</span>'
       :(v.toFixed(d)+(suf||''));
+    const share=(s.allocation_pct===null||s.allocation_pct===undefined)?100:s.allocation_pct;
+    const alloc=amountOf(share);
+    const capCells = withCap
+      ? '<td class="dim">'+fmtNum(alloc)+'</td>'
+        +'<td class="'+cls(st.total)+'">'+fmtSigned(alloc*st.total/100)+'</td>'
+      : '';
     return '<tr>'
       +'<td>'+esc(s.name)+(s.asset_class&&s.asset_class!=='—'
         ?'<span class="chip">'+esc(s.asset_class.toUpperCase())+'</span>':'')+'</td>'
+      +'<td class="dim">'+(s.allocation_pct===null||s.allocation_pct===undefined
+        ?'—':s.allocation_pct.toFixed(1)+'%')+'</td>'
+      +capCells
       +'<td class="'+cls(st.total)+'">'+fmtPct(st.total)+'</td>'
       +'<td class="neg">'+st.maxdd.toFixed(2)+'%</td>'
       +'<td>'+f(st.vol,1,'%')+'</td>'
@@ -405,14 +448,18 @@ function renderStats(){
       +'<td class="dim">'+st.n+'</td>'
       +'</tr>';
   }).join('');
+  const capHead = withCap ? '<th>Allocated</th><th>P&amp;L</th>' : '';
   document.getElementById('stats').innerHTML =
-    '<thead><tr><th>Strategy</th><th>Return</th><th>Max DD</th><th>Vol (ann.)</th>'
+    '<thead><tr><th>Strategy</th><th>Alloc</th>'+capHead
+    +'<th>Return</th><th>Max DD</th><th>Vol (ann.)</th>'
     +'<th>Sharpe</th><th>Sortino</th><th>Win</th><th>Best</th><th>Worst</th>'
     +'<th>Obs</th></tr></thead><tbody>'+rows+'</tbody>';
   document.getElementById('statsnote').textContent =
-    'Computed on daily returns. Sharpe and Sortino are withheld until at least '
-    +DASH.min_obs+' observations are available, since shorter samples produce '
-    +'unstable estimates rather than meaningful signal.';
+    'Computed on daily returns, measured against each strategy’s allocated '
+    +'capital. Sharpe and Sortino are withheld until at least '+DASH.min_obs
+    +' observations are available, since shorter samples produce unstable '
+    +'estimates rather than meaningful signal.'
+    +(withCap ? ' Amounts are derived in your browser from the capital you entered.' : '');
 }
 
 /* ---------- wiring ---------- */
@@ -451,10 +498,28 @@ function boot(){
   }
   initSeg('seg-gran','g', v=>GRAN=v);
   initSeg('seg-range','r', v=>RANGE=parseInt(v,10));
+  initCapital();
   renderDonut();
   renderCorr();
   renderStats();
   select(DASH.order[0]);
+}
+
+function applyCapital(v){
+  CAPITAL = (isFinite(v) && v>0) ? v : 0;
+  try{
+    if(CAPITAL>0) localStorage.setItem('algotel_capital', String(CAPITAL));
+    else localStorage.removeItem('algotel_capital');
+  }catch(e){}
+  renderDonut(); renderStats(); draw();
+}
+function initCapital(){
+  const el=document.getElementById('cap-input');
+  let saved=0;
+  try{ saved=parseFloat(localStorage.getItem('algotel_capital')||'0'); }catch(e){}
+  if(isFinite(saved) && saved>0){ CAPITAL=saved; el.value=saved; }
+  el.addEventListener('input', ()=>applyCapital(parseFloat(el.value)));
+  document.getElementById('cap-clear').onclick=()=>{ el.value=''; applyCapital(0); };
 }
 boot();
 </script>
