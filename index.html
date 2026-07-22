@@ -98,6 +98,21 @@
   th:first-child,td:first-child{text-align:left}
   tbody tr:last-child td{border-bottom:0}
   .tblwrap{overflow-x:auto}
+  .idle-row{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 6px}
+  .idle-chip{border:1px solid var(--border);border-radius:8px;padding:6px 10px;
+    font-size:11.5px;color:var(--ink-2)}
+  .idle-chip b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .idle-chip .k{color:var(--muted)}
+  .idle-chip.quiet{border-color:rgba(12,163,12,.35)}
+  .feed{max-height:280px;overflow-y:auto;padding:2px 8px 12px;margin:0}
+  .feed .ev{display:flex;align-items:center;gap:10px;padding:7px 8px;
+    border-bottom:1px solid var(--border);font-size:12.5px}
+  .feed .ev:last-child{border-bottom:0}
+  .feed .ago{color:var(--muted);flex:0 0 60px;font-variant-numeric:tabular-nums;font-size:11.5px}
+  .feed .ename{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .feed .eact{flex:0 0 auto;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .feed .epnl{flex:0 0 66px;text-align:right;font-variant-numeric:tabular-nums}
+  .feed .empty{padding:26px;text-align:center;color:var(--muted)}
   .warnbox{background:rgba(214,59,59,.10);border:1px solid rgba(214,59,59,.35);
     border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#f3b0b0}
   .warnbox summary{cursor:pointer;color:var(--neg);font-weight:600}
@@ -154,6 +169,15 @@
       <div class="note">Return of the selected strategy per period, at the chosen
         granularity.</div>
     </div>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <div class="ptitle">Activity &amp; idle time</div>
+    <div class="idle-row" id="idle-row"></div>
+    <div class="feed" id="feed"></div>
+    <div class="note">Live trade activity (anonymized: strategy, action and relative
+      result only — no instruments, prices, sizes or venues). A long idle time
+      means the market is quiet, not that a strategy has stopped working.</div>
   </div>
 
   <div class="panel" style="margin-top:14px">
@@ -285,6 +309,27 @@ function windowReturn(dates, rets, days){
   }
   return (eq-1)*100;
 }
+/* Relative time from a UTC ISO timestamp (never shows an absolute clock). */
+function secsSince(iso){
+  if(!iso) return null;
+  return Math.max(0, (Date.now() - new Date(iso).getTime())/1000);
+}
+function agoStr(iso){
+  const s=secsSince(iso); if(s===null) return '—';
+  if(s<60) return Math.floor(s)+'s ago';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+function durStr(iso){
+  let s=secsSince(iso); if(s===null) return '—';
+  const d=Math.floor(s/86400); s-=d*86400;
+  const h=Math.floor(s/3600); s-=h*3600;
+  const m=Math.floor(s/60);
+  if(d>0) return d+'d '+h+'h';
+  if(h>0) return h+'h '+m+'m';
+  return m+'m '+Math.floor(s%60)+'s';
+}
 
 /* ---------- render ---------- */
 function renderWarnings(){
@@ -371,6 +416,19 @@ function renderDesc(s, daily){
     ? ' · '+s.allocation_pct.toFixed(1)+'% of capital' : '';
   const ac = (s.asset_class && s.asset_class!=='—') ? ' · '+esc(s.asset_class) : '';
   const m = mascotState(s, daily);
+  // "Idle-syndrome" line for the selected strategy: reassurance during quiet spells.
+  const info = (DASH.idle||{})[CUR] || {};
+  let idleLine = '';
+  if(info.last){
+    const quiet = secsSince(info.last) > 3*86400;
+    idleLine = '<br><span class="k" style="color:var(--muted)">🕰 last trade '
+      +'<b id="idle-head" data-ts="'+info.last+'" style="color:var(--ink-2)">'
+      +durStr(info.last)+'</b> ago'
+      +(quiet?' — the market is quiet, not the logic.':'')+'</span>';
+  } else if(CUR!=='__ALL__'){
+    idleLine = '<br><span class="k" style="color:var(--muted)">🕰 no trades yet '
+      +'(waiting for a signal is normal for this sleeve).</span>';
+  }
   document.getElementById('desc').innerHTML =
     '<div class="mascot">'
       +'<img src="assets/mascot-'+m.img+'.png" alt="'+m.label+'" loading="lazy"'
@@ -380,7 +438,7 @@ function renderDesc(s, daily){
     +'</div>'
     +'<div class="body"><b>'+esc(s.name)+'</b>'+ac+alloc
       +' — last data '+s.last_date+' '+stale
-      +'<br>'+esc(s.description)+'</div>';
+      +'<br>'+esc(s.description)+idleLine+'</div>';
 }
 
 function renderChart(view){
@@ -528,6 +586,48 @@ function renderStats(){
     +(withCap ? ' Amounts are derived in your browser from the capital you entered.' : '');
 }
 
+const ACT_LABEL = {open:'opened', close:'closed', trim:'trimmed'};
+function renderActivity(){
+  const idle = DASH.idle || {};
+  const acts = DASH.activity || [];
+  // Per-strategy "last trade" chips. Long idle is framed calmly (not alarming).
+  const row = document.getElementById('idle-row');
+  row.innerHTML = DASH.order.filter(k=>k!=='__ALL__').map(k=>{
+    const s=DASH.strategies[k]; const info=idle[k]||{};
+    const quiet = info.last && secsSince(info.last) > 3*86400;
+    const val = info.last
+      ? '<b data-ts="'+info.last+'">'+durStr(info.last)+'</b> <span class="k">idle</span>'
+      : '<b>no trades yet</b>';
+    return '<span class="idle-chip'+(quiet?' quiet':'')+'"><span class="k">'
+      +esc(s.name.split(' — ')[0])+'</span> · '+val+'</span>';
+  }).join('');
+  // Ticker-style feed (newest first).
+  const feed=document.getElementById('feed');
+  if(!acts.length){ feed.innerHTML='<div class="empty">No recent trades. The book is quiet.</div>'; return; }
+  feed.innerHTML = acts.map(e=>{
+    const s=DASH.strategies[e.strat]||{name:e.strat,asset_class:''};
+    const chip = s.asset_class && s.asset_class!=='—'
+      ? '<span class="chip">'+esc(s.asset_class.toUpperCase())+'</span> ' : '';
+    const pnl = (e.pnl_pct===null||e.pnl_pct===undefined) ? ''
+      : '<span class="epnl '+cls(e.pnl_pct)+'">'+fmtPct(e.pnl_pct)+'</span>';
+    return '<div class="ev"><span class="ago" data-ts="'+e.t+'">'+agoStr(e.t)+'</span>'
+      +'<span class="ename">'+chip+esc(s.name)+'</span>'
+      +'<span class="eact">'+(ACT_LABEL[e.action]||esc(e.action))+'</span>'
+      +(pnl||'<span class="epnl dim">—</span>')+'</div>';
+  }).join('');
+}
+/* Live 1s ticker: refresh only the relative-time texts, no re-render/flicker. */
+function tickCounters(){
+  document.querySelectorAll('#feed .ago[data-ts]').forEach(el=>{
+    el.textContent = agoStr(el.getAttribute('data-ts'));
+  });
+  document.querySelectorAll('#idle-row b[data-ts]').forEach(el=>{
+    el.textContent = durStr(el.getAttribute('data-ts'));
+  });
+  const h=document.getElementById('idle-head');
+  if(h && h.getAttribute('data-ts')) h.textContent = durStr(h.getAttribute('data-ts'));
+}
+
 /* ---------- wiring ---------- */
 function draw(){
   const s=DASH.strategies[CUR];
@@ -593,7 +693,7 @@ function renderAll(){
   }
   if(!CUR || !DASH.strategies[CUR]) CUR = DASH.order[0];
   renderTabs(CUR);
-  renderDonut(); renderCorr(); renderStats();
+  renderDonut(); renderCorr(); renderStats(); renderActivity();
   draw();
 }
 function applyData(data){
@@ -622,6 +722,7 @@ async function refresh(){
 }
 refresh();
 setInterval(refresh, FETCH_MS);
+setInterval(tickCounters, 1000);   // live "X ago" / idle timers, no re-render
 </script>
 </body>
 </html>
