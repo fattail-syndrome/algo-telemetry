@@ -22,6 +22,11 @@
   h1{font-size:18px;font-weight:600;letter-spacing:.02em;margin:0}
   .updated{font-size:12.5px;color:var(--muted)}
   .updated b{color:var(--ink-2);font-weight:600}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:var(--muted);margin-right:6px;vertical-align:middle;transition:.3s}
+  .dot.live{background:var(--pos);box-shadow:0 0 7px var(--pos)}
+  .dot.wait{background:var(--warn)}
+  .dot.down{background:var(--neg);box-shadow:0 0 7px var(--neg)}
   .panel{background:var(--surface-1);border:1px solid var(--border);border-radius:12px}
   .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
   .tab{border:1px solid var(--border);background:var(--surface-1);color:var(--ink-2);
@@ -66,6 +71,7 @@
   .desc .body{flex:1 1 auto;min-width:0}
   .mascot{flex:0 0 auto;width:104px;text-align:center;user-select:none}
   .mascot img{height:104px;width:auto;display:block;margin:0 auto;
+    image-rendering:pixelated;image-rendering:crisp-edges;
     filter:drop-shadow(0 3px 8px rgba(0,0,0,.5))}
   .mascot .state{margin-top:7px;font-size:10px;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase}
@@ -104,7 +110,7 @@
 <div class="wrap">
   <header>
     <h1>Strategy Performance <span style="color:var(--muted);font-weight:400">— anonymized</span></h1>
-    <div class="updated">Last update: <b id="updated">—</b></div>
+    <div class="updated"><span class="dot" id="dot" title="connecting"></span>Last update: <b id="updated">—</b></div>
   </header>
 
   <div id="warnslot"></div>
@@ -133,7 +139,6 @@
   </div>
 
   <div class="cards" id="cards"></div>
-  <div class="panel desc" id="desc"></div>
   <div class="panel plot" id="chart" style="min-height:470px"></div>
 
   <div class="grid2">
@@ -163,6 +168,9 @@
     <div class="note" id="statsnote"></div>
   </div>
 
+  <div class="ptitle" style="padding-left:2px;margin-top:22px">Status &amp; description</div>
+  <div class="panel desc" id="desc" style="margin-top:8px"></div>
+
   <footer>
     Relative returns only (inception = 0%). No absolute amounts or account information.<br>
     Drawdown is the decline from the peak of cumulative return. All figures are
@@ -172,7 +180,11 @@
 </div>
 
 <script>
-const DASH = {"generated_at":"2026-07-22 01:10 UTC","stale_days_threshold":5,"min_obs":20,"mascot":{"good":1.0,"bad":-1.0,"dd_caution":-10.0},"strategies":{"__ALL__":{"name":"Portfolio (ALL)","description":"Combined performance across all strategies, weighted by their capital allocation. Their low mutual correlation aims to deliver shallower drawdowns and better risk-adjusted returns than any single sleeve.","asset_class":"Mixed","allocation_pct":100.0,"dates":["2026-06-23","2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[9.84e-06,-5.792e-05,7.797e-05,0.00023435,0.00012205,-0.00199568,0.0,0.0,-0.00434851,-0.00252006,0.00427756,-0.00162612,0.00028792,-4.487e-05,-0.00160238,0.00011339,0.00338144],"last_date":"2026-07-22","stale_days":0,"stale":false},"dislocation":{"name":"Dislocation Reversion","description":"Buys sharply sold-off, over-reacted quality names for a short-horizon reversion. Signals are sparse and strongly clustered (flat while there are no fills); low correlation to trend cushions drawdowns.","asset_class":"Crypto","allocation_pct":12.15,"dates":["2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"last_date":"2026-07-22","stale_days":0,"stale":false},"intraday_meanrev":{"name":"Mean Reversion — intraday","description":"Counter-trend strategy capturing short-horizon overshoots via mean reversion. A regime-health gate automatically pauses it when the market is unfavorable.","asset_class":"Crypto","allocation_pct":4.05,"dates":["2026-06-23","2026-06-27","2026-07-07","2026-07-08","2026-07-10","2026-07-19","2026-07-20","2026-07-21"],"ret":[0.000243,-0.00142965,0.00192729,0.00578173,0.00299446,0.00033976,0.00064265,0.00571185],"last_date":"2026-07-21","stale_days":1,"stale":false},"lev_momentum":{"name":"Leveraged Momentum — equities","description":"Holds top-momentum assets with leverage and rotates into defensive assets during drawdowns. Aims to amplify returns in up markets.","asset_class":"Equities","allocation_pct":59.48,"dates":["2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[-0.00729838,-0.00352631,0.00693521,-0.00093345,0.0,0.0,-0.00259954,-2e-05,0.00396957],"last_date":"2026-07-22","stale_days":0,"stale":false},"trend_ls":{"name":"Trend Following — L/S multi-asset","description":"Long/short momentum that follows medium-term trends across multiple assets. Profits when directional moves persist; low correlation to the other sleeves.","asset_class":"Crypto","allocation_pct":24.31,"dates":["2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22"],"ret":[-0.00821167,0.0,0.0,0.0,-0.00175306,0.00066663,-0.00442646,0.00119366,-0.00024371,-0.00033696,-0.00045596,0.00422716],"last_date":"2026-07-22","stale_days":0,"stale":false}},"order":["__ALL__","dislocation","intraday_meanrev","lev_momentum","trend_ls"],"correlation":{"ok":false,"n":3,"reason":"insufficient overlapping history"},"warnings":[]};
+// SPA: the page holds no data of its own. It polls this public read-only API
+// (GET) every FETCH_MS and re-renders with Plotly.react (no full reloads).
+const API_URL = "https://algo-api.tripped-eidola7q.workers.dev/";
+const FETCH_MS = 30000;
+let DASH = null;
 
 const COL = {
   surface:'#1a1a19', ink:'#ffffff', ink2:'#c3c2b7', muted:'#898781',
@@ -323,27 +335,33 @@ function renderCards(s, daily){
     +'<div class="sub">'+sb+'</div></div>').join('');
 }
 
-/* Mascot reflects the CURRENTLY SELECTED strategy.
-   Priority: caution (needs attention) > bad > good > idle. */
-const MASCOT_UI = {
-  idle:   {label:'Idle',    color:'var(--muted)'},
-  good:   {label:'Strong',  color:'var(--pos)'},
-  bad:    {label:'Weak',    color:'var(--neg)'},
-  caution:{label:'Caution', color:'var(--warn)'}
-};
+/* Mascot reflects the CURRENTLY SELECTED strategy, evaluated on live drawdown
+   and returns. Four candle images (metadata-stripped): idle/good/bad/caution.
+   Priority: caution (stale/extreme) > bad (drawdown) > good (bullish) > idle. */
 function mascotState(s, daily){
   const th = DASH.mascot || {good:1,bad:-1,dd_caution:-10};
-  if(s.stale) return ['caution','data has gone stale'];
   const dd = ddSeries(daily.rets);
   const curdd = dd.length ? dd[dd.length-1] : 0;
-  if(curdd <= th.dd_caution)
-    return ['caution','in a '+curdd.toFixed(1)+'% drawdown'];
   const cum = cumSeries(daily.rets);
   const total = cum.length ? cum[cum.length-1] : 0;
-  if(total <= th.bad)   return ['bad','down '+total.toFixed(2)+'%'];
-  if(total >= th.good)  return ['good','up +'+total.toFixed(2)+'%'];
-  return ['idle','flat, within ±'+th.good+'%'];
+  const last7 = windowReturn(daily.dates, daily.rets, 7);
+  const atHigh = curdd > -0.05 && total > 0;   // sitting at its all-time high
+  if(s.stale)
+    return {img:'caution', label:'STALE', why:'data feed has gone quiet'};
+  if(curdd <= th.dd_caution)
+    return {img:'caution', label:'DANGER', why:'deep drawdown '+curdd.toFixed(1)+'%'};
+  if(curdd <= -5)
+    return {img:'bad', label:'PANIC', why:'drawdown '+curdd.toFixed(1)+'%'};
+  if(total <= th.bad)
+    return {img:'bad', label:'BEARISH', why:'down '+total.toFixed(2)+'%'};
+  if(atHigh)
+    return {img:'good', label:'BULLISH', why:'at all-time high!'};
+  if(total >= th.good || last7 >= th.good)
+    return {img:'good', label:'BULLISH', why:'up +'+total.toFixed(2)+'%'};
+  return {img:'idle', label:'IDLE', why:'flat, waiting'};
 }
+const MASCOT_COLOR = {caution:'var(--warn)', bad:'var(--neg)',
+                      good:'var(--pos)', idle:'var(--muted)'};
 
 function renderDesc(s, daily){
   const stale = s.stale
@@ -352,13 +370,13 @@ function renderDesc(s, daily){
   const alloc = (s.allocation_pct!==null && s.allocation_pct!==undefined && s.name.indexOf('Portfolio')<0)
     ? ' · '+s.allocation_pct.toFixed(1)+'% of capital' : '';
   const ac = (s.asset_class && s.asset_class!=='—') ? ' · '+esc(s.asset_class) : '';
-  const [state, why] = mascotState(s, daily);
-  const ui = MASCOT_UI[state];
+  const m = mascotState(s, daily);
   document.getElementById('desc').innerHTML =
     '<div class="mascot">'
-      +'<img src="assets/mascot-'+state+'.png" alt="'+ui.label+'" loading="lazy">'
-      +'<div class="state" style="color:'+ui.color+'">'+ui.label+'</div>'
-      +'<div class="why">'+esc(why)+'</div>'
+      +'<img src="assets/mascot-'+m.img+'.png" alt="'+m.label+'" loading="lazy"'
+        +' style="image-rendering:pixelated">'
+      +'<div class="state" style="color:'+MASCOT_COLOR[m.img]+'">'+m.label+'</div>'
+      +'<div class="why">'+esc(m.why)+'</div>'
     +'</div>'
     +'<div class="body"><b>'+esc(s.name)+'</b>'+ac+alloc
       +' — last data '+s.last_date+' '+stale
@@ -379,12 +397,15 @@ function renderChart(view){
     font:{color:COL.ink2,family:'system-ui,-apple-system,Segoe UI,sans-serif',size:12},
     margin:{l:58,r:18,t:16,b:34}, showlegend:false, hovermode:'x unified',
     hoverlabel:{bgcolor:'#111',bordercolor:COL.axis,font:{color:COL.ink}},
+    // Y=0 reference on the cumulative subplot: dashed, grey, semi-transparent.
+    shapes:[{type:'line',xref:'paper',x0:0,x1:1,yref:'y',y0:0,y1:0,layer:'below',
+      line:{color:'rgba(200,200,200,0.35)',width:1,dash:'dash'}}],
     xaxis:{domain:[0,1],anchor:'y',matches:'x2',showticklabels:false,
       gridcolor:COL.grid,zeroline:false,linecolor:COL.axis},
     xaxis2:{domain:[0,1],anchor:'y2',gridcolor:COL.grid,zeroline:false,
       linecolor:COL.axis,tickfont:{color:COL.muted}},
     yaxis:{domain:[0.30,1],title:{text:'Cumulative return (%)',font:{size:11,color:COL.muted}},
-      gridcolor:COL.grid,zeroline:true,zerolinecolor:COL.axis,ticksuffix:'%',
+      gridcolor:COL.grid,zeroline:false,ticksuffix:'%',
       tickfont:{color:COL.muted}},
     yaxis2:{domain:[0,0.20],title:{text:'Drawdown (%)',font:{size:11,color:COL.muted}},
       gridcolor:COL.grid,zeroline:true,zerolinecolor:COL.axis,ticksuffix:'%',
@@ -396,7 +417,9 @@ function renderBars(view){
   const y=view.rets.map(r=>r*100);
   Plotly.react('bars', [{
     x:view.dates, y:y, type:'bar',
-    marker:{color:y.map(v=>v>=0?COL.pos:COL.neg)},
+    // Negative (red) bars are dimmed to opacity 0.7 so gains read first.
+    marker:{color:y.map(v=>v>=0?COL.pos:COL.neg),
+            opacity:y.map(v=>v>=0?1:0.7)},
     hovertemplate:'%{x}<br>%{y:.2f}%<extra></extra>'
   }], {
     paper_bgcolor:COL.surface, plot_bgcolor:COL.surface,
@@ -531,23 +554,6 @@ function initSeg(id, attr, apply){
   });
 }
 
-function boot(){
-  document.getElementById('updated').textContent = DASH ? DASH.generated_at : '—';
-  renderWarnings();
-  if(!DASH || !DASH.order || !DASH.order.length){
-    document.getElementById('chart').innerHTML =
-      '<div class="empty">No strategy data available to display.</div>';
-    return;
-  }
-  initSeg('seg-gran','g', v=>GRAN=v);
-  initSeg('seg-range','r', v=>RANGE=parseInt(v,10));
-  initCapital();
-  renderDonut();
-  renderCorr();
-  renderStats();
-  select(DASH.order[0]);
-}
-
 function applyCapital(v){
   CAPITAL = (isFinite(v) && v>0) ? v : 0;
   try{
@@ -564,7 +570,58 @@ function initCapital(){
   el.addEventListener('input', ()=>applyCapital(parseFloat(el.value)));
   document.getElementById('cap-clear').onclick=()=>{ el.value=''; applyCapital(0); };
 }
-boot();
+
+/* ---------- live data loop ---------- */
+let CONTROLS_READY = false;
+function setStatus(state, msg){
+  const d=document.getElementById('dot');
+  if(d){ d.className='dot '+state; d.title = msg || state; }
+}
+function showEmpty(msg){
+  document.getElementById('chart').innerHTML =
+    '<div class="empty">'+esc(msg||'Waiting for data…')+'</div>';
+}
+/* Re-render everything from the current DASH. Controls (tab, granularity,
+   range, capital) persist across refreshes; only data-derived views redraw. */
+function renderAll(){
+  renderWarnings();
+  if(!CONTROLS_READY){
+    initSeg('seg-gran','g', v=>GRAN=v);
+    initSeg('seg-range','r', v=>RANGE=parseInt(v,10));
+    initCapital();
+    CONTROLS_READY = true;
+  }
+  if(!CUR || !DASH.strategies[CUR]) CUR = DASH.order[0];
+  renderTabs(CUR);
+  renderDonut(); renderCorr(); renderStats();
+  draw();
+}
+function applyData(data){
+  const prev = DASH ? DASH.generated_at : null;
+  DASH = data;
+  document.getElementById('updated').textContent = data.generated_at || '—';
+  if(!data.order || !data.order.length){ showEmpty('No strategy data available.'); return; }
+  if(prev !== data.generated_at) renderAll();   // skip redundant redraws
+}
+async function refresh(){
+  try{
+    const res = await fetch(API_URL, {cache:'no-store'});
+    let data = null;
+    try{ data = await res.json(); }catch(e){ data = null; }
+    if(!res.ok || !data || data.error){
+      setStatus('wait', (data && data.error) || ('HTTP '+res.status));
+      if(!DASH) showEmpty((data && data.error) || 'Waiting for the first data push…');
+      return;
+    }
+    setStatus('live', 'connected · '+(data.generated_at||''));
+    applyData(data);
+  }catch(e){
+    setStatus('down', 'reconnecting… '+(e && e.message ? e.message : ''));
+    if(!DASH) showEmpty('Cannot reach the data API. Retrying…');
+  }
+}
+refresh();
+setInterval(refresh, FETCH_MS);
 </script>
 </body>
 </html>
