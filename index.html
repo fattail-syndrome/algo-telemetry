@@ -119,13 +119,50 @@
   .warnbox ul{margin:8px 0 0;padding-left:18px;line-height:1.6}
   footer{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
   .empty{padding:50px 20px;text-align:center;color:var(--muted);font-size:13px}
+  /* --- social layer --- */
+  .viewers{font-size:12px;color:var(--muted);margin-right:14px}
+  .viewers b{color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .likebtn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    border:1px solid var(--border);background:var(--surface-1);color:var(--ink-2);
+    border-radius:999px;padding:4px 12px;font-size:12px;margin-left:10px;
+    vertical-align:middle;transition:.12s;user-select:none}
+  .likebtn:hover{border-color:var(--blue);color:var(--ink)}
+  .likebtn:active{transform:scale(.94)}
+  .likebtn b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .mascot img{cursor:pointer}
+  .mascot .hint{font-size:9.5px;color:var(--muted);margin-top:3px}
+  .particle{position:fixed;pointer-events:none;font-size:22px;z-index:9999;
+    will-change:transform,opacity;animation:fly .9s cubic-bezier(.4,.7,.3,1) forwards}
+  @keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4) rotate(var(--rot));opacity:0}}
+  @keyframes chomp{0%,100%{transform:scale(1)}40%{transform:scale(1.12) rotate(-4deg)}}
+  .mascot.fed img{animation:chomp .4s ease}
+  .chat-feed{max-height:240px;overflow-y:auto;padding:8px 14px}
+  .msg{display:flex;gap:8px;padding:6px 0;font-size:12.5px;line-height:1.5}
+  .msg .who{color:var(--ink);font-weight:600;flex:0 0 auto}
+  .msg .txt{color:var(--ink-2);min-width:0;word-break:break-word}
+  .msg.bot .txt{color:#eaf2ff}
+  .msg .mini{width:20px;height:20px;flex:0 0 auto;image-rendering:pixelated;border-radius:4px}
+  .botbadge{display:inline-block;background:rgba(57,135,229,.16);color:#8fbaf3;
+    border:1px solid rgba(57,135,229,.4);border-radius:5px;padding:0 5px;
+    font-size:9.5px;font-weight:700;letter-spacing:.05em;margin-right:5px}
+  .chat-input{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);flex-wrap:wrap}
+  .chat-input input{background:var(--plane);border:1px solid var(--border);border-radius:8px;
+    color:var(--ink);padding:7px 10px;font-size:12.5px;font-family:inherit}
+  .chat-input input:focus{outline:0;border-color:var(--blue)}
+  #chat-name{flex:0 0 110px} #chat-body{flex:1 1 200px}
+  .chat-input button{background:var(--blue);border:0;border-radius:8px;color:#fff;
+    padding:7px 16px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .chat-input button:disabled{opacity:.5;cursor:default}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>Strategy Performance <span style="color:var(--muted);font-weight:400">— anonymized</span></h1>
-    <div class="updated"><span class="dot" id="dot" title="connecting"></span>Last update: <b id="updated">—</b></div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap">
+      <span class="viewers" id="viewers" style="display:none">👁 <b id="v-now">0</b> watching · <b id="v-total">0</b> total</span>
+      <span class="updated"><span class="dot" id="dot" title="connecting"></span>Last update: <b id="updated">—</b></span>
+    </div>
   </header>
 
   <div id="warnslot"></div>
@@ -194,6 +231,16 @@
 
   <div class="ptitle" style="padding-left:2px;margin-top:22px">Status &amp; description</div>
   <div class="panel desc" id="desc" style="margin-top:8px"></div>
+
+  <div class="panel" id="chat-panel" style="margin-top:14px;display:none">
+    <div class="ptitle">Trader chat <span style="color:var(--muted);text-transform:none;letter-spacing:0">— say something to CANDLE-9000, the resident AI quant</span></div>
+    <div class="chat-feed" id="chat-feed"></div>
+    <div class="chat-input">
+      <input id="chat-name" placeholder="name" maxlength="24" autocomplete="off">
+      <input id="chat-body" placeholder="drop a hot take…" maxlength="280" autocomplete="off">
+      <button id="chat-send" type="button">Send</button>
+    </div>
+  </div>
 
   <footer>
     Relative returns only (inception = 0%). No absolute amounts or account information.<br>
@@ -429,14 +476,17 @@ function renderDesc(s, daily){
     idleLine = '<br><span class="k" style="color:var(--muted)">🕰 no trades yet '
       +'(waiting for a signal is normal for this sleeve).</span>';
   }
+  const likeBtn = '<span class="likebtn" onclick="likeCurrent(event)" '
+    +'title="Like this strategy">👍 <b id="like-count">'+(SOCIAL.likes[CUR]||0)+'</b></span>';
   document.getElementById('desc').innerHTML =
-    '<div class="mascot">'
+    '<div class="mascot" id="mascot-box">'
       +'<img src="assets/mascot-'+m.img+'.png" alt="'+m.label+'" loading="lazy"'
-        +' style="image-rendering:pixelated">'
+        +' style="image-rendering:pixelated" onclick="feedMascot(event)">'
       +'<div class="state" style="color:'+MASCOT_COLOR[m.img]+'">'+m.label+'</div>'
       +'<div class="why">'+esc(m.why)+'</div>'
+      +'<div class="hint">tap to feed 🍔</div>'
     +'</div>'
-    +'<div class="body"><b>'+esc(s.name)+'</b>'+ac+alloc
+    +'<div class="body"><b>'+esc(s.name)+'</b>'+ac+alloc+likeBtn
       +' — last data '+s.last_date+' '+stale
       +'<br>'+esc(s.description)+idleLine+'</div>';
 }
@@ -703,26 +753,138 @@ function applyData(data){
   if(!data.order || !data.order.length){ showEmpty('No strategy data available.'); return; }
   if(prev !== data.generated_at) renderAll();   // skip redundant redraws
 }
-async function refresh(){
-  try{
-    const res = await fetch(API_URL, {cache:'no-store'});
-    let data = null;
-    try{ data = await res.json(); }catch(e){ data = null; }
-    if(!res.ok || !data || data.error){
-      setStatus('wait', (data && data.error) || ('HTTP '+res.status));
-      if(!DASH) showEmpty((data && data.error) || 'Waiting for the first data push…');
-      return;
-    }
-    setStatus('live', 'connected · '+(data.generated_at||''));
-    applyData(data);
-  }catch(e){
-    setStatus('down', 'reconnecting… '+(e && e.message ? e.message : ''));
-    if(!DASH) showEmpty('Cannot reach the data API. Retrying…');
+const API_BASE = API_URL.replace(/\/+$/, '');
+/* Prefer the new /api/data route; fall back to legacy / so the page keeps
+   working whether or not the social Worker has been deployed yet. */
+async function fetchData(){
+  for(const path of ['/api/data','/']){
+    try{
+      const r = await fetch(API_BASE+path, {cache:'no-store'});
+      let d=null; try{ d=await r.json(); }catch(e){}
+      if(r.ok && d && !d.error) return {data:d};
+      if(d && d.error) return {error:d.error};   // reached API, no data yet
+    }catch(e){ /* try next path */ }
   }
+  return {unreachable:true};
 }
+async function refresh(){
+  const res = await fetchData();
+  if(res.data){ setStatus('live','connected · '+(res.data.generated_at||'')); applyData(res.data); }
+  else if(res.error){ setStatus('wait',res.error); if(!DASH) showEmpty(res.error); }
+  else { setStatus('down','reconnecting…'); if(!DASH) showEmpty('Cannot reach the data API. Retrying…'); }
+}
+
+/* ================= social layer (all fail-soft) =================
+   Talks to the Worker's /api/* endpoints. If they are not deployed yet, every
+   call quietly no-ops and the social UI stays hidden — the core dashboard is
+   unaffected. No secret is ever used here; these are public interactions. */
+const SOCIAL = { likes:{}, sid:null, chatSeen:0 };
+function sid(){
+  if(SOCIAL.sid) return SOCIAL.sid;
+  let s=null; try{ s=localStorage.getItem('algotel_sid'); }catch(e){}
+  if(!s){ s='s'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+    try{ localStorage.setItem('algotel_sid',s); }catch(e){} }
+  SOCIAL.sid=s; return s;
+}
+async function sget(path){
+  const r=await fetch(API_BASE+path,{cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+async function spost(path,obj){
+  const r=await fetch(API_BASE+path,{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+async function ping(){
+  try{
+    const d=await spost('/api/ping',{session_id:sid()});
+    document.getElementById('viewers').style.display='';
+    document.getElementById('v-now').textContent=d.viewers ?? 0;
+    document.getElementById('v-total').textContent=(d.total_page_views ?? 0).toLocaleString();
+  }catch(e){ /* social backend not live: keep hidden */ }
+}
+async function loadLikes(){
+  try{ SOCIAL.likes=await sget('/api/likes')||{}; const el=document.getElementById('like-count');
+    if(el && CUR) el.textContent=SOCIAL.likes[CUR]||0; }catch(e){}
+}
+async function likeTarget(t){
+  try{ const d=await spost('/api/like',{target_id:t}); SOCIAL.likes[t]=d.count;
+    const el=document.getElementById('like-count'); if(el && t===CUR) el.textContent=d.count; }catch(e){}
+}
+function likeCurrent(ev){ if(ev){ev.stopPropagation();} if(CUR){ likeTarget(CUR); burst(ev,['👍','⭐']); } }
+
+/* mascot feeding: particles fly to the mascot + a like */
+function burst(ev, glyphs){
+  const box=document.getElementById('mascot-box'); if(!box) return;
+  const img=box.querySelector('img'); const r=img.getBoundingClientRect();
+  const tx=r.left+r.width/2, ty=r.top+r.height/2;
+  const ox=ev?ev.clientX:tx, oy=ev?ev.clientY:ty;
+  for(let i=0;i<7;i++){
+    const p=document.createElement('div'); p.className='particle';
+    p.textContent=glyphs[Math.floor(Math.random()*glyphs.length)];
+    const sx=ox+(Math.random()*50-25), sy=oy+(Math.random()*24-12);
+    p.style.left=sx+'px'; p.style.top=sy+'px';
+    p.style.setProperty('--dx',(tx-sx)+'px'); p.style.setProperty('--dy',(ty-sy)+'px');
+    p.style.setProperty('--rot',(Math.random()*180-90)+'deg');
+    document.body.appendChild(p); setTimeout(()=>p.remove(),950);
+  }
+  box.classList.remove('fed'); void box.offsetWidth; box.classList.add('fed');
+}
+function feedMascot(ev){ if(ev){ev.stopPropagation();} burst(ev,['🍔','🪙','🍟','💰','🥩']);
+  if(CUR) likeTarget(CUR); }
+
+/* chat */
+function renderChat(list){
+  const feed=document.getElementById('chat-feed');
+  if(!Array.isArray(list)) return;
+  document.getElementById('chat-panel').style.display='';
+  feed.innerHTML = list.map(m=>{
+    if(m.is_ai){
+      return '<div class="msg bot">'
+        +'<img class="mini" src="assets/mascot-caution.png" alt="bot">'
+        +'<div class="txt"><span class="botbadge">🤖 BOT</span>'
+        +'<span class="who">CANDLE-9000</span> '+esc(m.body)+'</div></div>';
+    }
+    return '<div class="msg"><div class="txt"><span class="who">'
+      +esc((m.name||'anon'))+'</span> '+esc(m.body)+'</div></div>';
+  }).join('');
+  // autoscroll to newest only when new messages arrived
+  if(list.length!==SOCIAL.chatSeen){ feed.scrollTop=feed.scrollHeight; SOCIAL.chatSeen=list.length; }
+}
+async function loadComments(){ try{ renderChat(await sget('/api/comments')); }catch(e){} }
+async function sendComment(){
+  const nameEl=document.getElementById('chat-name'), bodyEl=document.getElementById('chat-body');
+  const body=(bodyEl.value||'').trim(); if(!body) return;
+  const btn=document.getElementById('chat-send'); btn.disabled=true;
+  try{
+    await spost('/api/comment',{name:(nameEl.value||'anon').trim(),body:body,session_id:sid()});
+    bodyEl.value='';
+    await loadComments();
+    setTimeout(loadComments, 1800);   // give the AI reply a moment to land
+  }catch(e){ /* throttled or offline */ }
+  btn.disabled=false;
+}
+
+function initSocial(){
+  const send=document.getElementById('chat-send');
+  if(send){
+    send.onclick=sendComment;
+    document.getElementById('chat-body').addEventListener('keydown',e=>{
+      if(e.key==='Enter'){ e.preventDefault(); sendComment(); }
+    });
+  }
+  ping();          setInterval(ping, 30000);
+  loadLikes();     setInterval(loadLikes, 30000);
+  loadComments();  setInterval(loadComments, 15000);
+}
+
 refresh();
 setInterval(refresh, FETCH_MS);
 setInterval(tickCounters, 1000);   // live "X ago" / idle timers, no re-render
+initSocial();
 </script>
 </body>
 </html>
