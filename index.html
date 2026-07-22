@@ -270,7 +270,10 @@ let GRAN = 'D', RANGE = 0, CUR = null, CAPITAL = 0;
 /* ---------- helpers ---------- */
 function fmtPct(x){ return (x>0?'+':'') + x.toFixed(2) + '%'; }
 function cls(x){ return x>=0 ? 'pos' : 'neg'; }
-function esc(s){ return String(s).replace(/</g,'&lt;'); }
+/* Full HTML-text escape. All user/AI-controlled strings (comments, names) are
+   rendered through this, so injected markup/script cannot execute (XSS). */
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* Initial capital is entered by the viewer and lives only in this browser
    (localStorage). It is never part of the published data. */
